@@ -10,8 +10,11 @@ const { verificaToken } = require('../middlewares/auth');
 // Obtener todos los usuarios
 //=============================
 app.get('/usuario', (req, res) => {
-    let usuario = new Usuario();
+    let limite = Number(req.query.limite) || 5;
+    let desde = Number(req.query.desde) || 0;
     Usuario.find({}, 'nombre email img role')
+        .limit(limite)
+        .skip(desde)
         .exec((err, usuario) => {
             if (err) {
                 return res.status(500).json({
@@ -21,10 +24,14 @@ app.get('/usuario', (req, res) => {
                 });
             }
 
-            res.json({
-                ok: true,
-                usuario
+            Usuario.countDocuments({}, (err, conteo) => {
+                res.json({
+                    ok: true,
+                    usuario,
+                    total: conteo
+                });
             });
+
         });
 });
 
