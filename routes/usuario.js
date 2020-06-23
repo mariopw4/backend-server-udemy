@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const bcrypt = require('bcrypt');
 const Usuario = require('../models/usuario');
-const { verificaToken } = require('../middlewares/auth');
+const { verificaToken, verificaADMIN_ROLE, verificaADMIN_ROLE_MISMO_USER } = require('../middlewares/auth');
 
 
 
@@ -12,7 +12,7 @@ const { verificaToken } = require('../middlewares/auth');
 app.get('/usuario', (req, res) => {
     let limite = Number(req.query.limite) || 5;
     let desde = Number(req.query.desde) || 0;
-    Usuario.find({}, 'nombre email img role')
+    Usuario.find({}, 'nombre email img role google')
         .limit(limite)
         .skip(desde)
         .exec((err, usuario) => {
@@ -38,7 +38,7 @@ app.get('/usuario', (req, res) => {
 //=============================
 // Crear un usuario 
 //=============================
-app.post('/usuario', verificaToken, (req, res) => {
+app.post('/usuario', (req, res) => {
     let body = req.body;
     let usuario = new Usuario({
         nombre: body.nombre,
@@ -69,7 +69,7 @@ app.post('/usuario', verificaToken, (req, res) => {
 //=============================
 // Actualizar usuario
 //=============================
-app.put('/usuario/:id', verificaToken, (req, res) => {
+app.put('/usuario/:id', [verificaToken, verificaADMIN_ROLE_MISMO_USER], (req, res) => {
     let id = req.params.id;
     let body = req.body;
 
@@ -117,7 +117,7 @@ app.put('/usuario/:id', verificaToken, (req, res) => {
 //=============================
 // Eliminar usuario
 //=============================
-app.delete('/usuario/:id', verificaToken, (req, res) => {
+app.delete('/usuario/:id', [verificaToken, verificaADMIN_ROLE], (req, res) => {
     let id = req.params.id;
     Usuario.findByIdAndRemove(id, (err, usuario) => {
         if (err) {
